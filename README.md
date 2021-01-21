@@ -5,5 +5,5 @@ Dans le dossier frontend `npm install`, l'application a besoin de node-sass pour
 
 ###### BACKEND ######
 
-Dans le dossier backend `npm install`, le serveur se lance avec `nodemon serve` sur le port localhost:3000.
+Dans le dossier backend `npm install`, le serveur se lance avec `nodemon server` sur le port localhost:3000.
 
