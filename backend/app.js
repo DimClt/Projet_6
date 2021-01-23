@@ -15,7 +15,7 @@ app.use((req, res, next) => {
     next();
 });
 
-mongoose.connect('mongodb+srv://DimClt:noboo@sopekocko.du5c2.mongodb.net/SoPekocko?retryWrites=true&w=majority',
+mongoose.connect('mongodb+srv://dimclt:noboo@cluster0.du5c2.mongodb.net/sopekocko?retryWrites=true&w=majority',
   { useNewUrlParser: true,
     useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))

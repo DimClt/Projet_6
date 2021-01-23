@@ -1,17 +1,14 @@
 const Recipe = require('../models/Recipe');
-const Rate = require('../models/Rate');
 const fs = require('fs');
 
 exports.createRecipe = (req, res, next) => {
-    const recipeObjet = JSON.parse(req.body.sauce);
-    delete recipeObjet._id;
+    const recipeObject = JSON.parse(req.body.sauce);
+    delete recipeObject._id;
     const recipe = new Recipe({
-        ...recipeObjet,
+        ...recipeObject,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
         likes: 0,
-        dislikes: 0,
-        userLiked: [String],
-        userDisliked: [String],
+        dislikes: 0
     });
     recipe.save()
         .then(() => res.status(201).json({ message: 'Votre recette de sauce a été créé !' }))
@@ -31,12 +28,12 @@ exports.getOneRecipe = (req, res, next) => {
 };
 
 exports.modifyRecipe = (req, res, next) => {
-    const recipeObjet = req.file ?
+    const recipeObject = req.file ?
     {
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
-    Recipe.updateOne({ _id: req.params.id }, { ...recipeObjet, _id: req.params.id })
+    Recipe.updateOne({ _id: req.params.id }, { ...recipeObject, _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet modifié !'}))
       .catch(error => res.status(400).json({ error }));
 };
@@ -55,21 +52,48 @@ exports.deleteRecipe = (req, res, next) => {
 };
 
 exports.likeRecipe = (req, res, next) => {
-    const rateObject = JSON.parse(req.body.like);
-    const rate = new Rate({
-        ...rateObject
-    });
     Recipe.findOne({ _id: req.params.id })
-        .then(recipe => {
-            const rateValue = Number(req.rate.like);
-            if (rateValue === 1) {
-                for (const [userLiked, userId] of Object.entries(recipe)) {
-                    if (!req.rate.userId) {
-                        // recipe.likes = JSON.parse(Number(recipe.likes) += rateValue);
-                        recipe.userLiked = JSON.parse(rate.userId);
-                    };
-                };
-            };
+        .then(sauce => {
+            switch (req.body.like) {
+                case -1:
+                    sauce.dislikes = sauce.dislikes + 1;
+                    sauce.userDisliked.push(req.body.userId);
+                    sauceObject = {
+                        "dislikes": sauce.dislikes,
+                        "userDisliked": sauce.userDisliked
+                    }
+                    break;
+                case 0:
+                    if (sauce.userDisliked.find(user => user === req.body.userId)) {
+                        sauce.userDisliked = sauce.userDisliked.filter(user => user !== req.body.userId);
+                        sauce.dislikes = sauce.dislikes - 1;
+                        sauceObject = {
+                            "dislikes": sauce.dislikes,
+                            "userDisliked": sauce.userDisliked
+                        }
+                    } else {
+                        sauce.userLiked = sauce.userLiked.filter(user => user !== req.body.userId);
+                        sauce.likes = sauce.likes - 1;
+                        sauceObject = {
+                            "likes": sauce.likes,
+                            "userLiked": sauce.userLiked
+                        }
+                    }
+                    break;
+                case +1:
+                    sauce.likes = sauce.likes + 1;
+                    sauce.userLiked.push(req.body.userId);
+                    sauceObject = {
+                        "likes": sauce.likes,
+                        "userLiked": sauce.userLiked
+                    }
+                    break;
+                default:
+                    return res.status(500).json({ error });
+            }
+            Recipe.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+                .then(() => res.status(200).json({ message: 'Sauce liké !' }))
+                .catch(error => res.status(400).json({ error }));
         })
-        .catch(error => res.status(400).json({ error }));
+        .catch(() => res.status(400).json({ error: 'Sauce non trouvée !' }));
 };
