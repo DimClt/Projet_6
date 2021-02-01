@@ -8,7 +8,9 @@ exports.createRecipe = (req, res, next) => {
         ...recipeObject,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
         likes: 0,
-        dislikes: 0
+        dislikes: 0,
+        userLiked: [],
+        userDisliked: []
     });
     recipe.save()
         .then(() => res.status(201).json({ message: 'Votre recette de sauce a été créé !' }))
